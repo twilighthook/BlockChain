@@ -8,9 +8,9 @@ public class TestBlockChain {
 		
 		BlockChain hookCoin = new BlockChain();
 		
-		Block a = new Block("0X200" , new java.util.Date() , "<transactions>");
-		Block b = new Block("0X200" , new java.util.Date() , "<transactions>");
-		Block c = new Block("0X200" , new java.util.Date() , "<transactions>");
+		Block a = new Block("0");
+		Block b = new Block("1");
+		Block c = new Block("2");
 		
 		hookCoin.addBlock(a);
 		System.out.println("Trying to Mine block 1... ");

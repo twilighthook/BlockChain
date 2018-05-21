@@ -16,7 +16,7 @@ public class Transaction {
 	public ArrayList<TransactionInput> tranInputs = new ArrayList<TransactionInput>();
 	public ArrayList<TransactionOutput> tranOutputs = new ArrayList<TransactionOutput>();
 
-	public static int sequence = 1; // count how many transaction generate
+	public static int sequence = 0; // count how many transaction generate
 
 	public Transaction(PublicKey from, PublicKey to, float value, ArrayList<TransactionInput> inputs) {
 		this.sender = from;
@@ -46,40 +46,41 @@ public class Transaction {
 	}
 
 	public boolean processTransaction() {
-		
-		if(verifiySignature() == false) {
-			System.out.println("## Transaction Signature failed to vertify");
+
+		if (verifiySignature() == false) {
+			System.out.println("#Transaction Signature failed to vertify");
 			return false;
 		}
-		
-		//gather transaction inputs (Make sure they are unspent):
-		for(TransactionInput i : tranInputs) {
-			i.UTXO = BlockChain.UTXOs.get(i.transactionOutputId);
+
+		// gather transaction inputs (Make sure they are unspent):
+		for (TransactionInput input : tranInputs) {
+			input.UTXO = BlockChain.UTXOs.get(input.transactionOutputId);
 		}
-		
-		//check if transaction is valid:
-		if(getInputsValue() < BlockChain.minimumTransaction) {
-			System.out.println("##Transaction Inputs to small: " + getInputsValue());
+
+		// check if transaction is valid:
+		if (getInputsValue() < BlockChain.minimumTransaction) {
+			System.out.println("#Transaction Inputs to small: " + getInputsValue());
 			return false;
 		}
-		
-		//generate transaction output
+
+		// generate transaction output
 		float leftOver = getInputsValue() - value;
 		transactionId = calculateHash();
-		tranOutputs.add(new TransactionOutput ( this.reciepient , value , transactionId ) );
-		tranOutputs.add(new TransactionOutput ( this.sender , leftOver , transactionId ) );
-		
-		//add output to unspent list
-		for(TransactionOutput o : tranOutputs) {
+		tranOutputs.add(new TransactionOutput(this.reciepient, value, transactionId));
+		tranOutputs.add(new TransactionOutput(this.sender, leftOver, transactionId));
+
+		// add output to unspent list
+		for (TransactionOutput o : tranOutputs) {
 			BlockChain.UTXOs.put(o.id, o);
 		}
-		
-		//remove transaction input from UTXO list as  spent
-		for( TransactionInput i : tranInputs ) {
-			if( i.UTXO == null ) continue;
-			BlockChain.UTXOs.remove( i.UTXO.id );
+
+		// remove transaction input from UTXO list as spent
+		for (TransactionInput i : tranInputs) {
+			if (i.UTXO == null)
+				continue;
+			BlockChain.UTXOs.remove(i.UTXO.id);
 		}
-		
+
 		return true;
 	}
 
@@ -93,10 +94,10 @@ public class Transaction {
 		}
 		return total;
 	}
-	
+
 	public float getOutputsValue() {
 		float total = 0;
-		for(TransactionOutput o : tranOutputs) {
+		for (TransactionOutput o : tranOutputs) {
 			total += o.value;
 		}
 		return total;

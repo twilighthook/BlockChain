@@ -1,69 +1,73 @@
 package com.block;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
+import java.util.ArrayList;
 import java.util.Date;
+
+import com.transaction.StringUtil;
+import com.transaction.Transaction;
 
 public class Block {
 	
-	private String version; 
-	private Date Timestamp;
+	private long Timestamp;
+	public String merkleRoot;
 	private String hash;
 	private String previousHash;
-	private String data;
 	private int nonce;
+	public ArrayList<Transaction> transactions = new ArrayList<Transaction>(); 
 	
-	public Block(String version , Date timestamp , String data) {
-		this.version = version;
-		this.Timestamp = timestamp;
-		this.data = data;
+	//Add new block need preHash to create
+	public Block(String previousHash) {
+		this.previousHash = previousHash;
+		this.Timestamp = new Date().getTime();
+		
+		//Making sure we do this after we set the other values.
 		this.hash = computeHash();
 	}
 	
 	public String computeHash() {
-		String dataToHash = " " + Integer.toString(nonce) + this.version + this.Timestamp + this.previousHash + this.data;
+		String dataToHash = 
+				previousHash + 
+				Long.toString(Timestamp) + 
+				Integer.toString(nonce) + 
+				merkleRoot;
 		
+		String encoded = StringUtil.applySha256(dataToHash);
 		
-		MessageDigest digest;
-		String encoded = null;
-		
-		try {
-			digest = MessageDigest.getInstance("SHA-256");
-			byte[] hash = digest.digest(dataToHash.getBytes(StandardCharsets.UTF_8));
-			encoded = Base64.getEncoder().encodeToString(hash);
-		}catch(NoSuchAlgorithmException e){
-			e.printStackTrace();
-		}
-		
-		this.hash = encoded;
 		return encoded;
 	}
 	
 	public void mineBlock(int difficulty) {
 		String target = new String(new char[difficulty]).replace('\0', '0');
-		System.out.println(target);
 		while(!hash.substring( 0, difficulty).equals(target)) {
 			nonce ++;
-			System.out.println(hash.substring( 0, difficulty) + " and " + target + " and " + nonce);
+			//System.out.println(hash.substring( 0, difficulty) + " and " + target + " and " + nonce);
 			hash = computeHash();
 		}
 		System.out.println("Block Mined!!! : " + hash);
 	}
 	
-	public String getVersion() {
-		return version;
+	//Add transactions to this block
+	public boolean addTransaction(Transaction transaction) {
+		if(transaction == null) return false;
+		
+		if(previousHash != "0") {
+			if(transaction.processTransaction() != true) {
+				System.out.println("Transaction failed to process. Discard!");
+				return false;
+			}
+		}
+		
+		//the transaction array in block
+		transactions.add(transaction);
+		System.out.println("Transaction successfully added to Block!");
+		
+		return true;
 	}
 
-	public void setVersion(String version) {
-		this.version = version;
-	}
-
-	public Date getTimestamp() {
+	public long getTimestamp() {
 		return Timestamp;
 	}
 
-	public void setTimestamp(Date timestamp) {
+	public void setTimestamp(long timestamp) {
 		Timestamp = timestamp;
 	}
 
@@ -81,14 +85,6 @@ public class Block {
 
 	public void setPreviousHash(String previousHash) {
 		this.previousHash = previousHash;
-	}
-
-	public String getData() {
-		return data;
-	}
-
-	public void setData(String data) {
-		this.data = data;
 	}
 
 }
