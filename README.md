@@ -1,7 +1,7 @@
 # BlockChain
 The is a repository about blockchain.
 
-I. The implementation about the blockchain, mine ,UTXOs.
+I. The implementation concept about the blockchain, mine ,UTXOs.
 
 II. The chinese article about the miners need.
 
